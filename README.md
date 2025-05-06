@@ -1,7 +1,7 @@
 # PDF Field Extraction Pipeline
 
 ## Overview
-This project implements an automated pipeline for extracting specific fields from PDF documents using OCR and advanced text processing techniques.
+Build a Python solution to extract structured fields (e.g., invoice number, date, total amount, vendor name) from invoices/financial PDFs (digital/scanned) and support batch processing across documents..
 
 ## Pipeline Diagram
 ```mermaid
