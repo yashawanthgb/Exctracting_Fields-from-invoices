@@ -1,4 +1,4 @@
-# PDF Field Extraction Pipeline
+# Exctracting_Fields From Invoice
 
 ## Overview
 This project implements an automated pipeline for extracting specific fields from PDF documents and images using OCR, Google's Gemini AI, and advanced text processing techniques. The solution provides both a command-line interface and a web interface using Streamlit.
