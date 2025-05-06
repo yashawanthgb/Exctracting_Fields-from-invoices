@@ -3,6 +3,14 @@
 ## Overview
 Build a Python solution to extract structured fields (e.g., invoice number, date, total amount, vendor name) from invoices/financial PDFs (digital/scanned) and support batch processing across documents..
 
+## Scope
+•	Extract text, tables, and key-value pairs from PDFs.
+•	Handle variations in layouts.
+•	Output JSON/CSV with extracted fields.
+•	Support batch processing across multiple documents.
+•	Handle edge cases, such as multi-page tables, invalid inputs
+
+
 ## Pipeline Diagram
 ```mermaid
 graph TD
