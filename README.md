@@ -1,30 +1,25 @@
 # PDF Field Extraction Pipeline
 
 ## Overview
-This project implements an automated pipeline for extracting specific fields from PDF documents using OCR and advanced text processing techniques.
+This project implements an automated pipeline for extracting specific fields from PDF documents and images using OCR, Google's Gemini AI, and advanced text processing techniques. The solution provides both a command-line interface and a web interface using Streamlit.
 
 ## Pipeline Diagram
 ```mermaid
 graph TD
-    A[PDF Input] --> B[PDF Preprocessing]
-    B --> C[OCR Processing]
-    C --> D[Text Extraction]
-    D --> E[Field Identification]
-    E --> F[Data Validation]
-    F --> G[Output Generation]
-    
-    subgraph "Preprocessing"
-    B1[Image Conversion] --> B2[Noise Removal]
-    B2 --> B3[Image Enhancement]
-    end
-    
-    subgraph "OCR Processing"
-    C1[Tesseract OCR] --> C2[Text Post-processing]
-    end
+    A[Input Files] --> B[File Type Detection]
+    B --> C1[Digital PDF Processing]
+    B --> C2[Scanned PDF Processing]
+    B --> C3[Image Processing]
+    C1 --> D[Text Extraction]
+    C2 --> E[OCR Processing]
+    C3 --> E
+    D --> F[Field Extraction]
+    E --> F
+    F --> G1[CSV Output]
+    F --> G2[JSON Output]
     
     subgraph "Field Extraction"
-    E1[Pattern Matching] --> E2[Context Analysis]
-    E2 --> E3[Field Validation]
+    F1[Gemini AI Processing] --> F2[Pattern Matching Fallback]
     end
 ```
 
@@ -33,31 +28,36 @@ graph TD
 ### Tools and Libraries Used
 
 1. **PDF Processing**
-   - PyPDF2: For PDF manipulation and text extraction
+   - PyMuPDF: Extract text and metadata from PDFs.
+   - pdfplumber: For digital PDF text extraction
    - pdf2image: For converting PDFs to images
-   - Rationale: Industry-standard libraries with robust error handling
+   - PyPDF2: For PDF manipulation
 
 2. **OCR Processing**
    - Tesseract OCR (pytesseract): For optical character recognition
    - OpenCV: For image preprocessing
-   - Rationale: Tesseract provides high accuracy and supports multiple languages
+   - Pillow: For image handling
 
-3. **Text Processing**
+3. **AI and Text Processing**
+   - Google Gemini AI: For intelligent field extraction
    - spaCy: For natural language processing
-   - scikit-learn: For text classification and validation
-   - Rationale: Advanced NLP capabilities for context-aware extraction
+   - scikit-learn: For text classification
 
-4. **Development Tools**
+4. **Web Interface**
+   - Streamlit: For the web application interface
+   - pandas: For data manipulation and CSV handling
+
+5. **Development Tools**
    - pytest: For unit testing
    - black: For code formatting
    - flake8: For code linting
-   - Rationale: Ensures code quality and maintainability
 
 ## Setup and Installation
 
 1. **Prerequisites**
    - Python 3.8 or higher
    - Tesseract OCR installed on your system
+   - Google API key for Gemini AI
    - Virtual environment (recommended)
 
 2. **Installation Steps**
@@ -75,46 +75,53 @@ graph TD
 
    # Set up environment variables
    cp .env.example .env
-   # Edit .env with your configuration
+   # Add your GOOGLE_API_KEY to .env
    ```
 
-3. **Running the Pipeline**
+3. **Running the Application**
+
+   Web Interface:
    ```bash
-   python src/main.py --input path/to/pdf --output path/to/output
+   streamlit run app.py
    ```
 
-## Testing
+   Command Line:
+   ```bash
+   python extract_invoices.py
+   ```
 
-Run the test suite:
-```bash
-pytest tests/
-```
+## Features
 
-## Performance Comparison
+1. **Multi-format Support**
+   - Digital PDFs
+   - Scanned PDFs
+   - Images (JPG, PNG)
 
-### OCR Tools Comparison
+2. **Field Extraction**
+   - Invoice number
+   - Dates (invoice and due dates)
+   - Vendor information
+   - Customer details
+   - Line items
+   - Financial information
+   - Payment details
 
-| Tool | Accuracy | Speed | Memory Usage | Language Support |
-|------|----------|-------|--------------|------------------|
-| Tesseract | 95% | Medium | Low | Extensive |
-| Google Vision | 98% | Fast | High | Limited |
-| Azure OCR | 97% | Fast | High | Limited |
+3. **Output Formats**
+   - CSV export
+   - JSON export
+   - Raw text extraction
 
-### Field Extraction Accuracy
-
-| Field Type | Accuracy | Processing Time |
-|------------|----------|----------------|
-| Text Fields | 98% | < 1s |
-| Numeric Fields | 99% | < 1s |
-| Date Fields | 97% | < 1s |
-| Complex Fields | 95% | 1-2s |
+4. **Processing Methods**
+   - Primary: Google Gemini AI for intelligent extraction
+   - Fallback: Pattern matching for reliability
+   - OCR for scanned documents
 
 ## Security
 
-- All sensitive information is stored in environment variables
-- No PII or credentials are hardcoded in the codebase
-- Input validation and sanitization implemented
-- Secure file handling practices
+- API keys stored in environment variables
+- No sensitive information in codebase
+- Secure file handling
+- Input validation
 
 ## License
 

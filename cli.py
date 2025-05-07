@@ -2,15 +2,16 @@ import os
 import re
 import csv
 import json
+import argparse
 import pytesseract
 import pdfplumber
 import google.generativeai as genai
-import pymupdf
 from pdf2image import convert_from_path
 import pandas as pd
 from dotenv import load_dotenv
 from PIL import Image
 import io
+import pymupdf
 
 # Load environment variables
 load_dotenv()
@@ -38,8 +39,8 @@ def extract_text_from_image(image_path):
         print(f"Error extracting text from image: {e}")
         return ""
 
-# Check if PDF is digital (has extractable text)
 def is_digital_pdf(pdf_path):
+    """Check if PDF is digital (has extractable text)."""
     try:
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
@@ -50,8 +51,8 @@ def is_digital_pdf(pdf_path):
         pass
     return False
 
-# Extract text from digital PDF
 def extract_text_digital(pdf_path):
+    """Extract text from digital PDF."""
     try:
         with pdfplumber.open(pdf_path) as pdf:
             text = "\n".join([page.extract_text() or "" for page in pdf.pages])
@@ -60,8 +61,8 @@ def extract_text_digital(pdf_path):
         print(f"Error extracting digital PDF: {e}")
         return ""
 
-# Extract text from scanned PDF using OCR
 def extract_text_scanned(pdf_path):
+    """Extract text from scanned PDF using OCR."""
     try:
         images = convert_from_path(pdf_path)
         text = ""
@@ -73,13 +74,13 @@ def extract_text_scanned(pdf_path):
         return ""
 
 def clean_text(text):
-    # Remove extra whitespace and normalize
+    """Clean extracted text."""
     text = re.sub(r'\s+', ' ', text)
-    # Remove common OCR artifacts
     text = re.sub(r'[^\w\s.,/-]', ' ', text)
     return text.strip()
 
 def extract_fields_with_gemini(text):
+    """Extract structured fields from invoice text using Gemini."""
     prompt = f"""
     Extract the following fields from this invoice text. Return only a JSON object with these fields:
     - invoice_number
@@ -161,7 +162,7 @@ def extract_fields_with_gemini(text):
         return extract_fields_with_patterns(text)
 
 def extract_fields_with_patterns(text):
-    """Fallback pattern matching extraction for all required fields and items."""
+    """Fallback pattern matching extraction."""
     text = clean_text(text)
     lines = text.split('\n')
     fields = {
@@ -184,8 +185,8 @@ def extract_fields_with_patterns(text):
     }
     return fields
 
-# Main processor
 def process_invoices(input_files, csv_out, json_out):
+    """Process invoices and save results to CSV and JSON."""
     results = []
     
     for input_file in input_files:
@@ -201,7 +202,7 @@ def process_invoices(input_files, csv_out, json_out):
         extracted_fields = extract_fields_with_gemini(text)
         source_file = os.path.basename(input_file)
         
-        # Flatten line items for CSV: one row per item, with invoice-level fields repeated
+        # Flatten line items for CSV
         items = extracted_fields.get("items", [])
         if not items:
             items = [{}]  # At least one row per invoice
@@ -246,10 +247,25 @@ def process_invoices(input_files, csv_out, json_out):
         json.dump(results, f, indent=4)
     print(f"Saved structured data to: {json_out}")
 
-# Example usage
+def main():
+    parser = argparse.ArgumentParser(description='Process invoices and extract structured data.')
+    parser.add_argument('input_files', nargs='+', help='Input invoice files (PDF or image)')
+    parser.add_argument('--csv', default='extracted_invoices.csv', help='Output CSV filename')
+    parser.add_argument('--json', default='extracted_invoices.json', help='Output JSON filename')
+    
+    args = parser.parse_args()
+    
+    # Verify input files exist
+    for file in args.input_files:
+        if not os.path.exists(file):
+            print(f"Error: File not found - {file}")
+            return
+    
+    process_invoices(args.input_files, args.csv, args.json)
+
 if __name__ == "__main__":
-    input_files = [
-        'Document2.pdf',
-        'invoice.jpg'  # Example image file
-    ]
-    process_invoices(input_files, "extracted_invoices.csv", "extracted_invoices.json")
+    main()
+
+
+# python cli.py invoice.pdf --csv extracted_invoices.csv --json extracted_invoices.json
+#python cli.py Document2.pdf
